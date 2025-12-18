@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.schemas.schemas import NotificationCreate, NotificationOut
-from app.api.deps import get_db_dep, require_roles
-from app.crud import crud
-from app.services.notifications import send_notification_async
+from schemas import NotificationCreate, NotificationOut
+from deps import get_db_dep, require_roles
+import crud
+from notifications_utils import send_notification_async  # <-- import from new file
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
 

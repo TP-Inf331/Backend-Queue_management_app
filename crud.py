@@ -1,10 +1,12 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, desc, or_
+from models import User, Queue, Ticket, Notification
+from security import get_password_hash
+from typing import Optional, List
+import secrets
 from fastapi import HTTPException
-from app.models.models import User, Queue, Ticket, Notification
-from app.core.security import get_password_hash
-from typing import Optional, List, Tuple
 
+# Users
 async def create_user(db: AsyncSession, nom: str, email: str, password: str, role: str = "client", phone: Optional[str] = None) -> User:
     hashed = get_password_hash(password)
     user = User(nom=nom, email=email, mot_de_passe_hash=hashed, role=role, phone=phone)
@@ -29,7 +31,7 @@ async def list_users(db: AsyncSession, skip: int = 0, limit: int = 100, search: 
     q = await db.execute(stmt)
     return q.scalars().all()
 
-import secrets
+# Queues
 async def create_queue(db: AsyncSession, nom: str, institution: Optional[str], max_capacity: Optional[int]) -> Queue:
     code_unique = secrets.token_hex(8)
     queue = Queue(nom=nom, institution=institution, code_unique=code_unique, max_capacity=max_capacity)
@@ -50,6 +52,7 @@ async def list_queues(db: AsyncSession, skip: int = 0, limit: int = 100, search:
     q = await db.execute(stmt)
     return q.scalars().all()
 
+# Tickets
 async def next_ticket_number(db: AsyncSession, queue_id: int) -> int:
     q = await db.execute(select(func.max(Ticket.numero)).where(Ticket.queue_id == queue_id))
     max_num = q.scalar_one_or_none()
@@ -78,7 +81,11 @@ async def cancel_ticket(db: AsyncSession, ticket_id: int) -> Ticket:
     return ticket
 
 async def call_next(db: AsyncSession, queue_id: int) -> Optional[Ticket]:
-    q = await db.execute(select(Ticket).where(Ticket.queue_id==queue_id, Ticket.statut=="attente", Ticket.cancelled==False).order_by(desc(Ticket.prioritaire), Ticket.heure_arrivee))
+    q = await db.execute(
+        select(Ticket)
+        .where(Ticket.queue_id==queue_id, Ticket.statut=="attente", Ticket.cancelled==False)
+        .order_by(desc(Ticket.prioritaire), Ticket.heure_arrivee)
+    )
     next_ticket = q.scalars().first()
     if not next_ticket:
         return None
@@ -88,9 +95,16 @@ async def call_next(db: AsyncSession, queue_id: int) -> Optional[Ticket]:
     return next_ticket
 
 async def ticket_history(db: AsyncSession, user_id: int, skip: int = 0, limit: int = 100):
-    q = await db.execute(select(Ticket).where(Ticket.user_id==user_id).order_by(Ticket.heure_arrivee.desc()).offset(skip).limit(limit))
+    q = await db.execute(
+        select(Ticket)
+        .where(Ticket.user_id==user_id)
+        .order_by(Ticket.heure_arrivee.desc())
+        .offset(skip)
+        .limit(limit)
+    )
     return q.scalars().all()
 
+# Notifications
 async def create_notification(db: AsyncSession, user_id: int, type_: str, message: str) -> Notification:
     n = Notification(user_id=user_id, type=type_, message=message)
     db.add(n)

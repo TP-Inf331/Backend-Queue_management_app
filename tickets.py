@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
-from app.schemas.schemas import TicketCreate, TicketOut
-from app.api.deps import get_db_dep, require_roles, get_current_user
-from app.crud import crud
+from schemas import TicketCreate, TicketOut
+from deps import get_db_dep, require_roles, get_current_user
+import crud
 
 router = APIRouter(prefix="/tickets", tags=["tickets"])
 

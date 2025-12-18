@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
-from app.schemas.schemas import QueueCreate, QueueOut
-from app.api.deps import get_db_dep, require_roles
-from app.crud import crud
+from schemas import QueueCreate, QueueOut
+from deps import get_db_dep, require_roles
+import crud
 
 router = APIRouter(prefix="/queues", tags=["queues"])
 

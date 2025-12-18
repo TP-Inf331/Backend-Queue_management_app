@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
-from app.api.deps import get_db_dep, require_roles
-from app.models.models import Ticket, Queue
+from deps import get_db_dep, require_roles
+from models import Ticket, Queue
 from typing import Dict
 
 router = APIRouter(prefix="/reports", tags=["reports"])
