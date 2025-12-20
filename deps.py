@@ -7,15 +7,30 @@ from fastapi.security import OAuth2PasswordBearer
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-async def get_db_dep() -> AsyncSession:
-    async with get_db() as session:
-        yield session
+from jose import JWTError
+from security import decode_access_token
+import crud
 
-async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db_dep)):
-    # logic to decode token and get the user from db
-    user = ...  # retrieve user
-    if not user:
-        raise HTTPException(status_code=401, detail="Not authenticated")
+# Make get_db_dep an alias for get_db since get_db is already a valid dependency
+get_db_dep = get_db
+
+async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)):
+    credentials_exception = HTTPException(
+        status_code=401,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = decode_access_token(token)
+        email: str = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+    
+    user = await crud.get_user_by_email(db, email=email)
+    if user is None:
+        raise credentials_exception
     return user
 
 def require_roles(*roles):

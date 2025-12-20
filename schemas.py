@@ -5,7 +5,7 @@ from datetime import datetime
 class UserBase(BaseModel):
     nom: str
     email: EmailStr
-    phone: Optional[str]
+    phone: Optional[str] = None
 
 class UserCreate(UserBase):
     mot_de_passe: str
@@ -16,7 +16,7 @@ class UserOut(UserBase):
     role: str
     date_creation: datetime
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class Token(BaseModel):
     access_token: str
@@ -24,8 +24,8 @@ class Token(BaseModel):
 
 class QueueCreate(BaseModel):
     nom: str
-    institution: Optional[str]
-    max_capacity: Optional[int]
+    institution: Optional[str] = None
+    max_capacity: Optional[int] = None
 
 class QueueOut(BaseModel):
     queue_id: int
@@ -35,7 +35,7 @@ class QueueOut(BaseModel):
     date_creation: datetime
     max_capacity: Optional[int]
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class TicketCreate(BaseModel):
     queue_id: int
@@ -53,7 +53,7 @@ class TicketOut(BaseModel):
     heure_passage: Optional[datetime]
     cancelled: bool
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class NotificationCreate(BaseModel):
     user_id: int
@@ -67,4 +67,4 @@ class NotificationOut(BaseModel):
     message: str
     date_envoi: datetime
     class Config:
-        orm_mode = True
+        from_attributes = True
